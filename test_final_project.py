@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
 from scrape_weather import WeatherScraper
-# from db_operations import DBOperations
+from db_operations import DBOperations
 # from plot_operations import PlotOperations
 # from weather_processor import WeatherProcessor
 
@@ -14,7 +14,7 @@ class TestScraping(unittest.TestCase):
         self.assertIsInstance(self.myweather, WeatherScraper)
 
     def test_weather_return_type(self):
-        year = 2020
+        year = 1996
         month = 1
         url = ("http://climate.weather.gc.ca/"
                            + "climate_data/daily_data_e.html"
@@ -28,21 +28,21 @@ class TestScraping(unittest.TestCase):
         daily = self.myweather.weather[list(self.myweather.weather.keys())[0]]
         self.assertIs(type(daily), dict)
 
-# class TestDatabase(unittest.TestCase):
-#     def setUp(self):
-#         self.dbname = "weather.sqlite"
-#         self.mydb = DBOperations(self.dbname)
-#
-#     def test_db_type(self):
-#         self.assertIsInstance(self.mydb, DBOperations)
-#
-#     def test_db_structure(self):
-#         conn = sqlite3.connect(self.dbname)
-#         cur = conn.cursor()
-#         sql_select = """select id, sample_date, location,
-#                         min_temp, max_temp, avg_temp from samples"""
-#         self.assertIsNotNone(cur.execute(sql_select))
-#
+class TestDatabase(unittest.TestCase):
+    def setUp(self):
+        self.dbname = "weather.sqlite"
+        self.mydb = DBOperations(self.dbname)
+
+    def test_db_type(self):
+        self.assertIsInstance(self.mydb, DBOperations)
+
+    def test_db_structure(self):
+        conn = sqlite3.connect(self.dbname)
+        cur = conn.cursor()
+        sql_select = """select id, sample_date, location,
+                        min_temp, max_temp, avg_temp from weather"""
+        self.assertIsNotNone(cur.execute(sql_select))
+
 # class TestPlot(unittest.TestCase):
 #     def setUp(self):
 #         self.myplot = PlotOperations()

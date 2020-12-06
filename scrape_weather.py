@@ -74,17 +74,14 @@ class WeatherScraper(HTMLParser):
                         if 'Legend' not in d and d != 'E':
                             count += 1
                             if count <= 3:
-                                daily_temps[current_date].append(d)
                                 try:
-                                    float(d)
-                                except ValueError:
-                                    if d != 'M':
-                                        print(d)
+                                    daily_temps[current_date].append(float(d))
+                                except:
+                                    daily_temps.pop(current_date, None)
 
             keys = ["Max", "Min", "Mean"]
             for date, temp in daily_temps.items():
                 daily_temps[date] = {keys[i]: temp[i] for i in range(len(keys))}
-                # float(str)
 
             self.weather.update(daily_temps)
             print(current_year, current_month)
@@ -98,6 +95,6 @@ if __name__=="__main__":
     year = 2020
     myweather = WeatherScraper()
     myweather.start_scraping(url, year)
-    # pprint.pprint(myweather.weather)
+    pprint.pprint(myweather.weather)
 
     # datetime.date.today()-datetime.timedelta(1)
