@@ -28,6 +28,7 @@ There should be no database code anywhere else in the program.
 import sqlite3
 import pprint
 from scrape_weather import WeatherScraper
+import datetime
 
 class DBOperations():
     """docstring for DBOperations."""
@@ -82,32 +83,16 @@ class DBOperations():
                     data_tuple = (date, location, temps['Min'] ,temps['Max'], temps['Mean'])
                     dbcm.execute(insert_sql, data_tuple)
 
-    def fetch_data(self, table_name: str):
+    def fetch_data(self, table_name: str, year: int):
         """
-        fetch the data currently in the database.
+        fetch the data base on year in the database.
         """
         with DBOperations(self.name) as dbcm:
-            fetch_weather = []
-            for row in dbcm.execute(f"select * from {table_name} ;"):
-                fetch_weather.append(row)
+            dbcm.execute(f"select * from {table_name} where sample_date like '{year}%';")
+            fetch_weather = dbcm.fetchall()
 
-        mean_temps_for_plot = {}
-        for daily_temps in fetch_weather:
-            year = daily_temps[1][:4]
-            month = daily_temps[1][5:7]
-            mean_temp = daily_temps[-1]
-
-            if year in mean_temps_for_plot:
-                if month in mean_temps_for_plot[year]:
-                    mean_temps_for_plot[year][month].append(mean_temp)
-                else:
-                    mean_temps_for_plot[year][month] = [mean_temp]
-            else:
-                mean_temps_for_plot[year]= {}
-                mean_temps_for_plot[year][month] = [mean_temp]
-
-
-        return mean_temps_for_plot
+        return fetch_weather
+        
 
     def purge_data(self, table_name: str):
         """
@@ -119,12 +104,12 @@ class DBOperations():
 
 if __name__ == "__main__":
     myweather = WeatherScraper()
-    myweather.start_scraping('url', 1998)
+    myweather.start_scraping('url', 1997)
     weather_data_from_weather_scraper = myweather.weather
     db_name = 'weather.sqlite'
     table_name = 'weather'
     db_operations = DBOperations(db_name)
     db_operations.initialize_db(table_name)
-    db_operations.save_data(weather_data_from_weather_scraper, table_name)
-    pprint.pprint(db_operations.fetch_data(table_name))
     db_operations.purge_data(table_name)
+    db_operations.save_data(weather_data_from_weather_scraper, table_name)
+    pprint.pprint(db_operations.fetch_data(table_name, 1996))
