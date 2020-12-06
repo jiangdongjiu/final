@@ -83,7 +83,7 @@ class DBOperations():
                     data_tuple = (date, location, temps['Min'] ,temps['Max'], temps['Mean'])
                     dbcm.execute(insert_sql, data_tuple)
 
-    def fetch_data(self, table_name: str, year: int):
+    def fetch_data(self, table_name: str, year: int) -> list:
         """
         fetch the data base on year in the database.
         """
@@ -92,7 +92,7 @@ class DBOperations():
             fetch_weather = dbcm.fetchall()
 
         return fetch_weather
-        
+
 
     def purge_data(self, table_name: str):
         """

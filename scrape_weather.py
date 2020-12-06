@@ -41,7 +41,7 @@ class WeatherScraper(HTMLParser):
         if self.recording:
             self.data_list.append(data)
 
-    def start_scraping(self, url, year):
+    def start_scraping(self, url: str, year: int):
         current_year = year
         current_month = 12
         while True:
