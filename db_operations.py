@@ -1,6 +1,4 @@
 """
-Dongjiu Jiang
-
 Create a db_operations.py module with a DBOperations class inside.
 • Use the Python sqlite3 module to store the weather data in an SQLite
 database in the specified format. SQL queries to create and query the DB
