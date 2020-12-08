@@ -127,4 +127,6 @@ class WeatherProcessor(wx.Frame):
 if __name__ == '__main__':
     app = wx.App()
     frame = WeatherProcessor()
+    frame.SetSize(500,600)
     app.MainLoop()
+    input("press enter to finish")
