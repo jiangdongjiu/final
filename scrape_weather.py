@@ -1,3 +1,24 @@
+"""
+Create a scrape_weather.py module with a WeatherScraper class inside.
+• Use the Python HTMLParser class to scrape Winnipeg weather data (min,
+max & mean temperatures) from the Environment Canada website, from
+the current date, as far back in time as is available.
+◦ http://climate.weather.gc.ca/climate_data/daily_data_e.html?
+StationID=27174&timeframe=2&StartYear=1840&EndYear=2018&Day=
+1&Year=2018&Month=5#
+◦ Notice the year and month is encoded directly in the URL.
+• Your code must automatically detect when no more weather data is
+available for scraping. In other words, you are not allowed to hard code the
+last available date into your program. You are also not allowed to fetch the
+last date from any dropdown menus on the site.
+◦ You can try using a web browser to go back to the earliest available
+weather url. Then modify the date in the url to go back earlier, and see
+what happens. Use that knowledge to write your code in a way that
+detects when it can’t go back any further in time.
+• All scraping code should be self-contained inside the WeatherScraper
+class. There should be no scraping code anywhere else in the program.
+"""
+
 from datetime import datetime
 from html.parser import HTMLParser
 import urllib.request
@@ -41,19 +62,27 @@ class WeatherScraper(HTMLParser):
         if self.recording:
             self.data_list.append(data)
 
-    def start_scraping(self, url: str, year: int):
-        current_year = year
-        current_month = 12
+    def start_scraping(self, date_for_stopping_scraping: str = None):
+        """
+        Input The starting URL to scrape, encoded with today’s date.
+        Output A dictionary of dictionaries. For example:
+        • daily_temps = {“Max”: 12.0, “Min”: 5.6, “Mean”: 7.1}
+        • weather = {“2018-06-01”: daily_temps, “2018-06-02”: daily_temps}
+        """
+
+        today = datetime.today()
+        year = today.year
+        month = today.month
+
         while True:
             url = ("http://climate.weather.gc.ca/"
                                + "climate_data/daily_data_e.html"
                                + "?StationID=27174"
                                + "&timeframe=2&StartYear=1840"
-                               + "&EndYear=" + str(current_year)
-                               + "&Day=1&Year=" + str(current_year)
-                               + "&Month=" + str(current_month) + "#")
+                               + "&EndYear=" + str(year)
+                               + "&Day=1&Year=" + str(year)
+                               + "&Month=" + str(month) + "#")
             myparser = WeatherScraper()
-            current_url = url + ""
             with urllib.request.urlopen(url) as response:
                 html = str(response.read())
             myparser.feed(html)
@@ -64,6 +93,8 @@ class WeatherScraper(HTMLParser):
             for d in myparser.data_list:
                 try:
                     datetime.strptime(d, '%Y-%m-%d')
+                    if datetime.strptime(d, '%Y-%m-%d') <= datetime.strptime(date_for_stopping_scraping, '%Y-%m-%d'):
+                        return
                     current_date = d
                     if current_date in self.weather:
                         return
@@ -84,17 +115,13 @@ class WeatherScraper(HTMLParser):
                 daily_temps[date] = {keys[i]: temp[i] for i in range(len(keys))}
 
             self.weather.update(daily_temps)
-            print(current_year, current_month)
-            current_month -= 1
-            if current_month == 0:
-                current_month = 12
-                current_year -= 1
+            print(year, month)
+            month -= 1
+            if month == 0:
+                month = 12
+                year -= 1
 
 if __name__=="__main__":
-    url = 'https://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=27174&timeframe=2&StartYear=1840&EndYear=2020&Day=1&Year=2020&Month=12'
-    year = 2020
     myweather = WeatherScraper()
-    myweather.start_scraping(url, year)
+    myweather.start_scraping()
     pprint.pprint(myweather.weather)
-
-    # datetime.date.today()-datetime.timedelta(1)

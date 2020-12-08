@@ -1,6 +1,4 @@
 """
-Dongjiu Jiang
-
 Create a db_operations.py module with a DBOperations class inside.
 • Use the Python sqlite3 module to store the weather data in an SQLite
 database in the specified format. SQL queries to create and query the DB
@@ -69,19 +67,15 @@ class DBOperations():
         receive a dictionary of dictionaries and correctly insert the data into the DB.
         """
         location = "Winnipeg, MB"
-        insert_sql = f"""insert into {table_name}
+        insert_sql = f"""insert or ignore into {table_name}
                    (sample_date, location, min_temp, max_temp, avg_temp)
                    values
                    (?,?,?,?,?)"""
 
         with DBOperations(self.name) as dbcm:
             for date, temps in data_dict.items():
-                check_duplicate_sql = f"select * from {table_name} where sample_date=?;"
-                existing_data_on_the_date = dbcm.execute(check_duplicate_sql, (date,))
-
-                if not any(existing_data_on_the_date):
-                    data_tuple = (date, location, temps['Min'] ,temps['Max'], temps['Mean'])
-                    dbcm.execute(insert_sql, data_tuple)
+                data_tuple = (date, location, temps['Min'] ,temps['Max'], temps['Mean'])
+                dbcm.execute(insert_sql, data_tuple)
 
     def fetch_data(self, table_name: str, year: int) -> list:
         """
@@ -104,7 +98,7 @@ class DBOperations():
 
 if __name__ == "__main__":
     myweather = WeatherScraper()
-    myweather.start_scraping('url', 1997)
+    myweather.start_scraping()
     weather_data_from_weather_scraper = myweather.weather
     db_name = 'weather.sqlite'
     table_name = 'weather'
