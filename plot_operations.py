@@ -116,7 +116,7 @@ class PlotOperations():
         plt.title(plot_title)
         plt.xlim(0,13)
         Path("./images").mkdir(parents=True, exist_ok=True)
-        save_path = './images/boxplot.jpg'
+        save_path = f'./images/boxplot_from{start_year}to{end_year}.jpg'
         plt.savefig(save_path)
         plt.show()
 
@@ -133,7 +133,7 @@ class PlotOperations():
         plot_title = 'Daily Temperature Distribution for:'+ str(year) + '/' + str(month)
         plt.title(plot_title)
         Path("./images").mkdir(parents=True, exist_ok=True)
-        save_path = './images/lineplot.jpg'
+        save_path = f'./images/lineplot_{year}-{month}.jpg'
         plt.savefig(save_path)
         plt.show()
 

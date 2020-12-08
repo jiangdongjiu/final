@@ -23,6 +23,7 @@ from datetime import datetime
 from html.parser import HTMLParser
 import urllib.request
 import pprint
+import threading
 
 class WeatherScraper(HTMLParser):
     """docstring for WeatherScraper."""
@@ -32,6 +33,7 @@ class WeatherScraper(HTMLParser):
         self.recording = 0
         self.data_list = []
         self.weather = {}
+        self.stop = False
 
     def handle_starttag(self, tag, attrs):
         if tag == 'abbr':
@@ -62,66 +64,92 @@ class WeatherScraper(HTMLParser):
         if self.recording:
             self.data_list.append(data)
 
-    def start_scraping(self, date_for_stopping_scraping: str = None):
+    def monthly_scraping(self, year:int, month:int, date_for_stop:str = None):
         """
-        Input The starting URL to scrape, encoded with today’s date.
+        Input The starting URL to scrape, base on year and month.
         Output A dictionary of dictionaries. For example:
         • daily_temps = {“Max”: 12.0, “Min”: 5.6, “Mean”: 7.1}
         • weather = {“2018-06-01”: daily_temps, “2018-06-02”: daily_temps}
         """
-
-        today = datetime.today()
-        year = today.year
-        month = today.month
-
-        while True:
-            url = ("http://climate.weather.gc.ca/"
-                               + "climate_data/daily_data_e.html"
-                               + "?StationID=27174"
-                               + "&timeframe=2&StartYear=1840"
-                               + "&EndYear=" + str(year)
-                               + "&Day=1&Year=" + str(year)
-                               + "&Month=" + str(month) + "#")
+        url = ("http://climate.weather.gc.ca/"
+                           + "climate_data/daily_data_e.html"
+                           + "?StationID=27174"
+                           + "&timeframe=2&StartYear=1840"
+                           + "&EndYear=" + str(year)
+                           + "&Day=1&Year=" + str(year)
+                           + "&Month=" + str(month) + "#")
+        try:
             myparser = WeatherScraper()
             with urllib.request.urlopen(url) as response:
                 html = str(response.read())
             myparser.feed(html)
+        except Exception as e:
+            print(e)
 
-            daily_temps = {}
-            count = 0
-            current_date = ""
-            for d in myparser.data_list:
-                try:
-                    datetime.strptime(d, '%Y-%m-%d')
-                    if datetime.strptime(d, '%Y-%m-%d') <= datetime.strptime(date_for_stopping_scraping, '%Y-%m-%d'):
-                        return
-                    current_date = d
-                    if current_date in self.weather:
-                        return
-                    daily_temps[current_date] = []
-                    count = 0
-                except Exception as e:
-                    if d and current_date:
-                        if 'Legend' not in d and d != 'E':
-                            count += 1
-                            if count <= 3:
-                                try:
-                                    daily_temps[current_date].append(float(d))
-                                except:
-                                    daily_temps.pop(current_date, None)
+        useful_data = myparser.data_list
+        if date_for_stop:
+            if date_for_stop in useful_data:
+                useful_data = useful_data[useful_data.index(date_for_stop)+1:]
+                self.stop = True
 
-            keys = ["Max", "Min", "Mean"]
-            for date, temp in daily_temps.items():
-                daily_temps[date] = {keys[i]: temp[i] for i in range(len(keys))}
+        daily_temps = {}
+        count = 0
+        current_date = ""
 
-            self.weather.update(daily_temps)
+        for d in useful_data:
+            try:
+                datetime.strptime(d, '%Y-%m-%d')
+                current_date = d
+                if current_date in self.weather:
+                    self.stop = True
+
+                daily_temps[current_date] = []
+                count = 0
+            except Exception as e:
+                if d and current_date:
+                    if 'Legend' not in d and d != 'E':
+                        count += 1
+                        if count <= 3:
+                            try:
+                                daily_temps[current_date].append(float(d))
+                            except:
+                                daily_temps.pop(current_date, None)
+        keys = ["Max", "Min", "Mean"]
+        for date, temp in daily_temps.items():
+            daily_temps[date] = {keys[i]: temp[i] for i in range(len(keys))}
+
+        self.weather.update(daily_temps)
+
+
+
+    def start_scraping(self, date_for_stop: str = None):
+        """
+        Input The starting URL to scrape, encoded with today’s date.
+        Output A dictionary of dictionaries. For example:
+        • daily_temps = {“Max”: 12.0, “Min”: 5.6, “Mean”: 7.1}
+        • weather = {“2018-06-01”: daily_temps, ... “2020-12-1”: daily_temps}
+        """
+        today = datetime.today()
+        year = 1998
+        month = today.month
+        while not self.stop:
+            self.monthly_scraping(year, month, date_for_stop)
             print(year, month)
             month -= 1
             if month == 0:
                 month = 12
                 year -= 1
+        # while not self.stop:
+        #     x = threading.Thread(target=self.monthly_scraping, args=(year, month, date_for_stop,))
+        #     x.start()
+        #     month -= 1
+        #     if month == 0:
+        #         month = 12
+        #         year -= 1
+
 
 if __name__=="__main__":
     myweather = WeatherScraper()
-    myweather.start_scraping()
+    # myweather.start_scraping()
+    myweather.start_scraping('1996-11-05')
     pprint.pprint(myweather.weather)
