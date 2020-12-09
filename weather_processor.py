@@ -1,3 +1,20 @@
+"""
+Create a weather_processor.py module with a WeatherProcessor class
+inside.
+• When the program starts, present the user with a menu of choices.
+• Allow the user to download a full set of weather data, or to update it.
+◦ When updating, the program should check today’s date and the latest
+date of weather available in the DB, and download what’s missing
+between those two points, without duplicating any data.
+• Allow the user to enter a year range of interest (from year, to year) to
+generate the box plot.
+• Allow the user to enter a month and a year to generate the line plot.
+• Use this class to launch and manage all the other tasks.
+• All user interaction should be self contained in the WeatherProcessor
+class. There should be no user prompt type code anywhere else in the
+program.
+"""
+
 import wx
 from db_operations import DBOperations
 from scrape_weather import WeatherScraper
@@ -7,6 +24,7 @@ class WeatherProcessor(wx.Frame):
     """docstring for WeatherProcessor."""
 
     def __init__(self):
+        """initialize for WeatherProcessor. Use wxpython for user interaction"""
         self.db_name = 'weather.sqlite'
         self.table_name = 'weather'
 
@@ -87,6 +105,7 @@ class WeatherProcessor(wx.Frame):
         self.Show()
 
     def boxplot(self, event):
+        " Generate and save boxplot "
         start_year = self.start_year_text_ctrl.GetValue()
         end_year = self.end_year_text_ctrl.GetValue()
         db_name = 'weather.sqlite'
@@ -95,6 +114,7 @@ class WeatherProcessor(wx.Frame):
         my_plot_operations.generate_boxplot(int(start_year), int(end_year))
 
     def lineplot(self, event):
+        " Generate and save lineplot "
         year = self.year_text_ctrl.GetValue()
         month = self.month_text_ctrl.GetValue()
         db_name = 'weather.sqlite'
@@ -103,6 +123,7 @@ class WeatherProcessor(wx.Frame):
         my_plot_operations.generate_lineplot(int(year), int(month))
 
     def clear_db_and_install_all_weather_data(self, event):
+        " clear db and install all weather data "
         myweather = WeatherScraper()
         myweather.start_scraping()
         weather_data_from_weather_scraper = myweather.weather
@@ -112,6 +133,7 @@ class WeatherProcessor(wx.Frame):
         db_operations.save_data(weather_data_from_weather_scraper, self.table_name)
 
     def update_db(self, event):
+        " install missing weather data "
         myweather = WeatherScraper()
         with DBOperations(self.db_name) as dbcm:
             dbcm.execute(f"select max(sample_date) from {self.table_name};")

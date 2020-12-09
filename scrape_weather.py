@@ -23,7 +23,7 @@ from datetime import datetime
 from html.parser import HTMLParser
 import urllib.request
 import pprint
-import threading
+# import threading
 
 class WeatherScraper(HTMLParser):
     """docstring for WeatherScraper."""
@@ -41,7 +41,7 @@ class WeatherScraper(HTMLParser):
                 try:
                     date = attrs[0][1]
                     self.data_list.append(datetime.strptime(date, '%B %d, %Y').strftime('%Y-%m-%d'))
-                except Exception as e:
+                except:
                     return
 
         if tag not in ['td']:
@@ -64,7 +64,7 @@ class WeatherScraper(HTMLParser):
         if self.recording:
             self.data_list.append(data)
 
-    def monthly_scraping(self, year:int, month:int, date_for_stop:str = None):
+    def monthly_scraping(self, year: int, month: int, date_for_stop: str = None):
         """
         Input The starting URL to scrape, base on year and month.
         Output A dictionary of dictionaries. For example:
@@ -78,13 +78,11 @@ class WeatherScraper(HTMLParser):
                            + "&EndYear=" + str(year)
                            + "&Day=1&Year=" + str(year)
                            + "&Month=" + str(month) + "#")
-        try:
-            myparser = WeatherScraper()
-            with urllib.request.urlopen(url) as response:
-                html = str(response.read())
-            myparser.feed(html)
-        except Exception as e:
-            print(e)
+
+        myparser = WeatherScraper()
+        with urllib.request.urlopen(url) as response:
+            html = str(response.read())
+        myparser.feed(html)
 
         useful_data = myparser.data_list
         if date_for_stop:
@@ -105,7 +103,7 @@ class WeatherScraper(HTMLParser):
 
                 daily_temps[current_date] = []
                 count = 0
-            except Exception as e:
+            except:
                 if d and current_date:
                     if 'Legend' not in d and d != 'E':
                         count += 1
@@ -130,7 +128,7 @@ class WeatherScraper(HTMLParser):
         • weather = {“2018-06-01”: daily_temps, ... “2020-12-1”: daily_temps}
         """
         today = datetime.today()
-        year = 1998
+        year = today.year
         month = today.month
         while not self.stop:
             self.monthly_scraping(year, month, date_for_stop)
@@ -148,8 +146,8 @@ class WeatherScraper(HTMLParser):
         #         year -= 1
 
 
-if __name__=="__main__":
-    myweather = WeatherScraper()
-    # myweather.start_scraping()
-    myweather.start_scraping('1996-11-05')
-    pprint.pprint(myweather.weather)
+if __name__ == "__main__":
+    WEATHER = WeatherScraper()
+    # WEATHER.start_scraping()
+    WEATHER.start_scraping('1996-11-05')
+    pprint.pprint(WEATHER.weather)

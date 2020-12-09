@@ -15,10 +15,9 @@ There should be no plotting code anywhere else in the program.
 from db_operations import DBOperations
 from scrape_weather import WeatherScraper
 import pprint
-import matplotlib.pyplot as plt
 from datetime import date
 from pathlib import Path
-
+import matplotlib.pyplot as plt
 
 class PlotOperations():
     """docstring for PlotOperations."""
@@ -27,29 +26,7 @@ class PlotOperations():
         self.db_name = db
         self.table_name = table
 
-    def clear_db_and_install_all_weather_data(self):
-        myweather = WeatherScraper()
-        myweather.start_scraping()
-        weather_data_from_weather_scraper = myweather.weather
-        db_operations = DBOperations(self.db_name)
-        db_operations.initialize_db(self.table_name)
-        db_operations.purge_data(self.table_name)
-        db_operations.save_data(weather_data_from_weather_scraper, self.table_name)
-
-    def update_db(self):
-        myweather = WeatherScraper()
-        with DBOperations(self.db_name) as dbcm:
-            dbcm.execute(f"select max(sample_date) from {self.table_name};")
-            latest_date = dbcm.fetchall()[0][0]
-
-        print('latest date in db', latest_date)
-        myweather.start_scraping(latest_date)
-        weather_data_from_weather_scraper = myweather.weather
-        db_operations = DBOperations(self.db_name)
-        db_operations.initialize_db(self.table_name)
-        db_operations.save_data(weather_data_from_weather_scraper, self.table_name)
-
-    def receive_and_format_data(self, year: int, specific_month:int = 0) -> dict:
+    def receive_and_format_data(self, year: int, specific_month: int = 0) -> dict:
         """
         input year and output a dictionary
         output when month is not specified:
@@ -114,7 +91,7 @@ class PlotOperations():
         plt.xlabel('Month')
         plt.ylabel('Temperature (Celsius)')
         plt.title(plot_title)
-        plt.xlim(0,13)
+        plt.xlim(0, 13)
         Path("./images").mkdir(parents=True, exist_ok=True)
         save_path = f'./images/boxplot_from{start_year}to{end_year}.jpg'
         plt.savefig(save_path)
@@ -141,7 +118,5 @@ if __name__ == "__main__":
     db_name = 'weather.sqlite'
     table_name = 'weather'
     my_plot_operations = PlotOperations(db_name, table_name)
-    # my_plot_operations.clear_db_and_install_all_weather_data()
-    my_plot_operations.update_db()
     my_plot_operations.generate_boxplot(2018, 2020)
     my_plot_operations.generate_lineplot(2011, 10)

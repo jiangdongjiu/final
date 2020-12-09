@@ -26,7 +26,6 @@ There should be no database code anywhere else in the program.
 import sqlite3
 import pprint
 from scrape_weather import WeatherScraper
-import datetime
 
 class DBOperations():
     """docstring for DBOperations."""
@@ -97,13 +96,13 @@ class DBOperations():
 
 
 if __name__ == "__main__":
-    myweather = WeatherScraper()
-    myweather.start_scraping()
-    weather_data_from_weather_scraper = myweather.weather
-    db_name = 'weather.sqlite'
-    table_name = 'weather'
-    db_operations = DBOperations(db_name)
-    db_operations.initialize_db(table_name)
-    db_operations.purge_data(table_name)
-    db_operations.save_data(weather_data_from_weather_scraper, table_name)
-    pprint.pprint(db_operations.fetch_data(table_name, 1996))
+    WEATHER = WeatherScraper()
+    WEATHER.start_scraping()
+    weather_data_from_weather_scraper = WEATHER.weather
+    DB_NAME = 'weather.sqlite'
+    TABLE_NAME = 'weather'
+    DB_OPERATIONS = DBOperations(DB_NAME)
+    DB_OPERATIONS.initialize_db(TABLE_NAME)
+    DB_OPERATIONS.purge_data(TABLE_NAME)
+    DB_OPERATIONS.save_data(weather_data_from_weather_scraper, TABLE_NAME)
+    pprint.pprint(DB_OPERATIONS.fetch_data(TABLE_NAME, 1996))
